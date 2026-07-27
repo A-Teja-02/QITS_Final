@@ -12,6 +12,7 @@ import {
   History,
   Headphones,
   FolderKey,
+  Key,
   LogOut,
   ChevronLeft,
   ChevronRight
@@ -28,6 +29,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
     { name: 'Employees', path: '/employees', icon: Users },
     { name: 'Assets', path: '/assets', icon: Monitor },
     { name: 'Categories', path: '/categories', icon: FolderKey },
+    { name: 'Licenses', path: '/licenses', icon: Key },
     { name: 'Assign Assets', path: '/assign-assets', icon: ClipboardCopy },
     { name: 'Return Assets', path: '/return-assets', icon: RotateCcw },
     { name: 'Repairs', path: '/repairs', icon: Wrench },

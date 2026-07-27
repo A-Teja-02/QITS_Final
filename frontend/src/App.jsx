@@ -13,6 +13,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import ActivityLog from './pages/ActivityLog';
 import Login from './pages/Login';
+import Licenses from './pages/Licenses';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import EmployeeSettings from './pages/EmployeeSettings';
 
@@ -42,6 +43,7 @@ function App() {
               <Route path="employees" element={<Employees />} />
               <Route path="assets" element={<Assets />} />
               <Route path="categories" element={<Categories />} />
+              <Route path="licenses" element={<Licenses />} />
               <Route path="assign-assets" element={<AssignAsset />} />
               <Route path="return-assets" element={<ReturnAsset />} />
               <Route path="repairs" element={<Repairs />} />

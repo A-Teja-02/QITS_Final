@@ -4,6 +4,7 @@ import initialAssets from '../data/assets.json';
 import initialRepairs from '../data/repairs.json';
 import initialNotifications from '../data/notifications.json';
 import initialActivity from '../data/activity.json';
+import initialLicenses from '../data/licenses.json';
 
 const AssetContext = createContext(null);
 
@@ -26,6 +27,7 @@ export const AssetProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [activity, setActivity] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [licenses, setLicenses] = useState([]);
 
   const defaultGuidelines = {
     title: "Quadrant IT Services - Asset Policy & Usage Guidelines 2026",
@@ -71,19 +73,26 @@ export const AssetProvider = ({ children }) => {
 
   useEffect(() => {
     // 0. Force clean DB migration to format asset IDs by ownership prefix (QITS/DSV/DHL)
-    const DB_VERSION = "v3_asset_prefix_migration";
+    const DB_VERSION = "v11_license_page_added";
     if (localStorage.getItem('it_db_version') !== DB_VERSION) {
       localStorage.removeItem('it_assets');
+      localStorage.removeItem('it_employees');
+      localStorage.removeItem('it_activity');
       localStorage.removeItem('it_repairs');
       localStorage.removeItem('it_categories');
+      localStorage.removeItem('it_licenses');
       localStorage.setItem('it_db_version', DB_VERSION);
     }
 
     // 1. Initialize Employees (Target: 125 total; 110 Active, 15 Inactive)
     let storedEmployees = localStorage.getItem('it_employees');
     if (!storedEmployees) {
-      const generatedEmployees = [...initialEmployees];
-      const depts = ["IT", "Finance", "HR", "Marketing", "Sales"];
+      let generatedEmployees = [];
+      if (initialEmployees && initialEmployees.length > 0) {
+        generatedEmployees = [...initialEmployees];
+      } else {
+        generatedEmployees = [...initialEmployees];
+        const depts = ["IT", "Finance", "HR", "Marketing", "Sales"];
       const designations = {
         "IT": ["System Engineer", "Network Engineer", "Technical Support", "DevOps Engineer", "Database Admin"],
         "Finance": ["Accounts Executive", "Finance Analyst", "Auditor"],
@@ -139,6 +148,7 @@ export const AssetProvider = ({ children }) => {
           joiningDate: `${String(1 + (i % 28)).padStart(2, '0')} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][i % 12]} 2024`
         });
       }
+      }
       localStorage.setItem('it_employees', JSON.stringify(generatedEmployees));
       storedEmployees = JSON.stringify(generatedEmployees);
     }
@@ -162,9 +172,6 @@ export const AssetProvider = ({ children }) => {
         }
         if (!emp.username) {
           emp.username = emp.email ? emp.email.split('@')[0] : emp.name.toLowerCase().replace(/[^a-z]/g, '').replace(' ', '.');
-        }
-        if (!["IT", "HR", "Marketing", "Sales", "Finance"].includes(emp.department)) {
-          emp.department = "HR";
         }
         return emp;
       });
@@ -191,8 +198,11 @@ export const AssetProvider = ({ children }) => {
     // 2. Initialize Assets (Target: 250 total; 180 Assigned, 50 Available, 20 Under Repair, 10 Disposed/Retired)
     let storedAssets = localStorage.getItem('it_assets');
     if (!storedAssets) {
-      const generatedAssets = [];
-      const types = ["Laptop", "Monitor", "Mouse", "Keyboard", "Headset", "Printer", "Docking Station"];
+      let generatedAssets = [];
+      if (initialAssets && initialAssets.length > 0) {
+        generatedAssets = [...initialAssets];
+      } else {
+        const types = ["Laptop", "Monitor", "Mouse", "Keyboard", "Headset", "Printer", "Docking Station"];
       const brands = {
         "Laptop": ["Dell", "HP", "Apple", "Lenovo"],
         "Monitor": ["Dell", "HP", "Samsung", "LG"],
@@ -401,6 +411,7 @@ export const AssetProvider = ({ children }) => {
         }
       ];
       generatedAssets.push(...rakeshTestAssets);
+      }
 
       localStorage.setItem('it_assets', JSON.stringify(generatedAssets));
       storedAssets = JSON.stringify(generatedAssets);
@@ -411,8 +422,11 @@ export const AssetProvider = ({ children }) => {
     // 3. Initialize Repairs (Target: 28 total)
     let storedRepairs = localStorage.getItem('it_repairs');
     if (!storedRepairs) {
-      const generatedRepairs = [];
-      const parsedAssets = JSON.parse(storedAssets);
+      let generatedRepairs = [];
+      if (initialRepairs && initialRepairs.length > 0) {
+        generatedRepairs = [...initialRepairs];
+      } else {
+        const parsedAssets = JSON.parse(storedAssets);
 
       for (let i = 1; i <= 25; i++) {
         const targetAsset = parsedAssets[i % parsedAssets.length];
@@ -506,7 +520,7 @@ export const AssetProvider = ({ children }) => {
         }
       ];
 
-      mockRepairs.forEach(mr => generatedRepairs.push(mr));
+      }
       localStorage.setItem('it_repairs', JSON.stringify(generatedRepairs));
       storedRepairs = JSON.stringify(generatedRepairs);
     }
@@ -703,6 +717,15 @@ export const AssetProvider = ({ children }) => {
 
     localStorage.setItem('it_categories', JSON.stringify(parsedCats));
     setCategories(parsedCats);
+
+    // 7. Initialize Licenses
+    let storedLicenses = localStorage.getItem('it_licenses');
+    if (!storedLicenses) {
+      localStorage.setItem('it_licenses', JSON.stringify(initialLicenses));
+      storedLicenses = JSON.stringify(initialLicenses);
+    }
+    let parsedLicenses = JSON.parse(storedLicenses);
+    setLicenses(parsedLicenses);
   }, []);
 
   // Utility to update state and localStorage
@@ -1321,6 +1344,53 @@ export const AssetProvider = ({ children }) => {
         if (target) {
           logActivity("Delete Category", `Deleted asset category ${target.name}`);
         }
+      },
+      licenses,
+      addLicense: (licenseData) => {
+        const newLic = {
+          id: `LIC${String(licenses.length + 1).padStart(3, '0')}`,
+          status: licenseData.status || "Active",
+          ...licenseData
+        };
+        const list = [...licenses, newLic];
+        setLicenses(list);
+        localStorage.setItem('it_licenses', JSON.stringify(list));
+        logActivity("Add License", `Added new software license: ${newLic.name}`);
+        showToast(`License "${newLic.name}" added successfully!`, "success");
+      },
+      updateLicense: (id, updatedData) => {
+        const list = licenses.map(lic => lic.id === id ? { ...lic, ...updatedData } : lic);
+        setLicenses(list);
+        localStorage.setItem('it_licenses', JSON.stringify(list));
+        logActivity("Update License", `Updated software license: ${updatedData.name || id}`);
+        showToast(`License updated successfully!`, "success");
+      },
+      deleteLicense: (id) => {
+        const target = licenses.find(l => l.id === id);
+        const list = licenses.filter(lic => lic.id !== id);
+        setLicenses(list);
+        localStorage.setItem('it_licenses', JSON.stringify(list));
+        if (target) {
+          logActivity("Delete License", `Deleted software license: ${target.name}`);
+          showToast(`License "${target.name}" deleted successfully!`, "info");
+        }
+      },
+      triggerEmailAlert: (id) => {
+        const license = licenses.find(l => l.id === id);
+        if (!license) return;
+        const newNotif = {
+          id: `NOTF${String(Date.now()).substring(9)}`,
+          title: "License Expiry Email Alert",
+          message: `System sent email notification to Admin (${license.adminEmail}) regarding software license "${license.name}" expiring on ${license.endDate}.`,
+          date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          read: false,
+          type: "alert"
+        };
+        const updatedNotifs = [newNotif, ...notifications];
+        setNotifications(updatedNotifs);
+        localStorage.setItem('it_notifications', JSON.stringify(updatedNotifs));
+        logActivity("Email Alert Sent", `Email alert sent to ${license.adminEmail} for license "${license.name}" expiring on ${license.endDate}`);
+        showToast(`Email alert sent successfully to ${license.adminEmail}!`, "success");
       }
     }}>
       {children}

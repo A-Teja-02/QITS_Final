@@ -423,7 +423,7 @@ const Reports = () => {
 
     // 2. If history is empty or has fewer than 2 assignments, let's pre-populate a realistic history chain!
     // This ensures that when the user clicks on *any* asset, it displays a rich usage timeline.
-    if (history.length < 2) {
+    if (history.length < 2 && !assetId.includes('-')) {
       const asset = assets.find(a => a.id === assetId);
       const currentAssigneeId = asset ? asset.assignedTo : null;
       const currentOwner = currentAssigneeId ? employees.find(e => e.id === currentAssigneeId) : null;
