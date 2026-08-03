@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, NavLink, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, Check, Monitor, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, Menu, Check, Monitor, LogOut, ChevronDown } from 'lucide-react';
 import { useAssetManager } from '../hooks/useAssetManager';
 import Avatar from './Avatar';
 import QuadrantLogo from './QuadrantLogo';
@@ -120,19 +120,6 @@ const Header = () => {
 
       {/* Operations Panel */}
       <div className="flex items-center gap-6">
-        {/* Search Input (Only for Admins) */}
-        {!isEmployee && (
-          <div className="relative w-80 hidden md:block">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-              <Search className="h-5 w-5" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search assets, employees..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder-slate-400"
-            />
-          </div>
-        )}
 
         {/* Notifications Bell */}
         <div className="relative" ref={notifRef}>
